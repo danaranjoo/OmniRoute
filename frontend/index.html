@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Alarmas - Prueba Técnica</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --primary: #3b82f6;
+      --warn: #f59e0b;
+      --critico: #ef4444;
+      --normal: #22c55e;
+      --hover: #1e40af;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+    h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+    .subtitle { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      background: var(--card);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .btn {
+      padding: 0.55rem 1.1rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--hover); }
+    .btn-secondary { background: #475569; color: white; }
+    .btn-secondary:hover { background: #64748b; }
+    .btn-success { background: #059669; color: white; }
+    .btn-success:hover { background: #047857; }
+    .btn-warn { background: var(--warn); color: #1c1917; }
+    .btn-critico { background: var(--critico); color: white; }
+    .btn-normal { background: var(--normal); color: #052e16; }
+    .btn.active { outline: 3px solid white; outline-offset: 2px; }
+    .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .stats {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1.25rem;
+      min-width: 120px;
+    }
+    .stat-card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
+    .stat-card .value { font-size: 1.5rem; font-weight: 700; }
+    .table-wrapper {
+      background: var(--card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: auto;
+      max-height: 65vh;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: #0f172a;
+      padding: 0.75rem 0.6rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 0.55rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:hover td { background: rgba(59, 130, 246, 0.08); }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-WARN { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .badge-CRITICO { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .badge-NORMAL { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+    tr.row-WARN { border-left: 4px solid var(--warn); }
+    tr.row-CRITICO { border-left: 4px solid var(--critico); }
+    tr.row-NORMAL { border-left: 4px solid transparent; }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      width: min(640px, 95vw);
+      max-height: 85vh;
+      overflow: auto;
+    }
+    .modal h2 { margin-bottom: 0.5rem; }
+    .modal-close {
+      float: right;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .hour-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0.4rem 0;
+    }
+    .hour-label { width: 50px; font-size: 0.85rem; color: var(--muted); }
+    .bar-bg {
+      flex: 1;
+      height: 22px;
+      background: #0f172a;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      border-radius: 6px;
+      transition: width 0.3s;
+    }
+    .hour-count { width: 40px; text-align: right; font-weight: 600; }
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+    }
+    .file-input-wrapper input[type=file] {
+      position: absolute;
+      left: 0; top: 0;
+      opacity: 0;
+      width: 100%; height: 100%;
+      cursor: pointer;
+    }
+    .loading { opacity: 0.6; pointer-events: none; }
+    #status { font-size: 0.85rem; color: var(--muted); }
+    .empty { text-align: center; padding: 3rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <h1>📡 Sistema de Gestión de Alarmas</h1>
+  <p class="subtitle">Prueba Técnica Full Stack · Backend FastAPI · Frontend desacoplado</p>
+
+  <div class="toolbar">
+    <div class="file-input-wrapper">
+      <button class="btn btn-primary" id="btnImportar">📂 Importar CSV</button>
+      <input type="file" id="fileInput" accept=".csv" />
+    </div>
+    <button class="btn btn-success" id="btnExportar">⬇️ Exportar Excel</button>
+    <button class="btn btn-secondary" id="btnResumen">📊 Resumen del Día</button>
+    <span id="status"></span>
+  </div>
+
+  <div class="stats" id="stats">
+    <div class="stat-card"><div class="label">Total</div><div class="value" id="statTotal">0</div></div>
+    <div class="stat-card"><div class="label">WARN</div><div class="value" id="statWarn" style="color:var(--warn)">0</div></div>
+    <div class="stat-card"><div class="label">CRÍTICO</div><div class="value" id="statCritico" style="color:var(--critico)">0</div></div>
+    <div class="stat-card"><div class="label">Normal</div><div class="value" id="statNormal" style="color:var(--normal)">0</div></div>
+  </div>
+
+  <div class="toolbar">
+    <strong style="margin-right:0.5rem">Filtros:</strong>
+    <div class="filters">
+      <button class="btn btn-secondary active" data-filtro="todos">Todos</button>
+      <button class="btn btn-warn" data-filtro="WARN">Solo WARN</button>
+      <button class="btn btn-critico" data-filtro="CRITICO">Solo CRÍTICO</button>
+      <button class="btn btn-normal" data-filtro="NORMAL">Solo Normales</button>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>2G</th>
+          <th>3G</th>
+          <th>4G</th>
+          <th>Fecha Creación</th>
+          <th>Duración</th>
+          <th>Municipio</th>
+          <th>Departamento</th>
+          <th>Notificada</th>
+          <th>Criticidad</th>
+        </tr>
+      </thead>
+      <tbody id="tablaBody">
+        <tr><td colspan="10" class="empty">Importa un archivo CSV para comenzar</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Resumen -->
+  <div class="modal-overlay" id="modalResumen">
+    <div class="modal">
+      <button class="modal-close" id="closeModal">&times;</button>
+      <h2>📊 Resumen del Día</h2>
+      <p id="resumenFecha" style="color:var(--muted); margin-bottom:1rem"></p>
+      <p><strong>Total alarmas hoy:</strong> <span id="resumenTotal">0</span></p>
+      <div id="resumenHoras" style="margin-top:1rem"></div>
+    </div>
+  </div>
+
+  <script>
+    const API = "http://localhost:8000";
+    let filtroActual = "todos";
+    let datosActuales = [];
+
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    // Importar CSV
+    $("#fileInput").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      setStatus("Importando...");
+      const form = new FormData();
+      form.append("file", file);
+      try {
+        const res = await fetch(`${API}/api/importar`, { method: "POST", body: form });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Error al importar");
+        setStatus(`✅ ${data.mensaje}`);
+        await cargarAlarmas();
+      } catch (err) {
+        setStatus("❌ " + err.message);
+        console.error(err);
+      }
+      e.target.value = "";
+    });
+
+    // Cargar alarmas
+    async function cargarAlarmas() {
+      setStatus("Cargando...");
+      try {
+        const url = filtroActual === "todos"
+          ? `${API}/api/alarmas`
+          : `${API}/api/alarmas?filtro=${filtroActual}`;
+        const res = await fetch(url);
+        datosActuales = await res.json();
+        renderTabla(datosActuales);
+        actualizarStats(datosActuales);
+        setStatus(`${datosActuales.length} registros mostrados`);
+      } catch (err) {
+        setStatus("❌ Error al cargar: " + err.message);
+      }
+    }
+
+    function renderTabla(datos) {
+      const tbody = $("#tablaBody");
+      if (!datos.length) {
+        tbody.innerHTML = `<tr><td colspan="10" class="empty">No hay registros con este filtro</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = datos.map(a => `
+        <tr class="row-${a.criticidad}">
+          <td>${a.id_alarma}</td>
+          <td>${a.tech_2g}</td>
+          <td>${a.tech_3g}</td>
+          <td>${a.tech_4g}</td>
+          <td>${a.fecha_creacion}</td>
+          <td><strong>${a.duracion_formateada}</strong></td>
+          <td>${a.municipio}</td>
+          <td>${a.departamento}</td>
+          <td>${a.notificada}</td>
+          <td><span class="badge badge-${a.criticidad}">${a.criticidad}</span></td>
+        </tr>
+      `).join("");
+    }
+
+    function actualizarStats(datos) {
+      // Si hay filtro, stats del filtrado; si no, pedimos todos para stats globales
+      // Para simplicidad usamos los datos actuales cuando filtro=todos
+      if (filtroActual === "todos") {
+        $("#statTotal").textContent = datos.length;
+        $("#statWarn").textContent = datos.filter(d => d.criticidad === "WARN").length;
+        $("#statCritico").textContent = datos.filter(d => d.criticidad === "CRITICO").length;
+        $("#statNormal").textContent = datos.filter(d => d.criticidad === "NORMAL").length;
+      } else {
+        $("#statTotal").textContent = datos.length;
+      }
+    }
+
+    // Filtros
+    $$(".filters .btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        $$(".filters .btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        filtroActual = btn.dataset.filtro;
+        cargarAlarmas();
+      });
+    });
+
+    // Exportar
+    $("#btnExportar").addEventListener("click", () => {
+      const url = filtroActual === "todos"
+        ? `${API}/api/exportar`
+        : `${API}/api/exportar?filtro=${filtroActual}`;
+      window.open(url, "_blank");
+    });
+
+    // Resumen del día
+    $("#btnResumen").addEventListener("click", async () => {
+      try {
+        const res = await fetch(`${API}/api/resumen-dia`);
+        const data = await res.json();
+        $("#resumenFecha").textContent = `Fecha: ${data.fecha}`;
+        $("#resumenTotal").textContent = data.total_alarmas_hoy;
+        const max = Math.max(...data.por_hora.map(h => h.cantidad), 1);
+        $("#resumenHoras").innerHTML = data.por_hora
+          .filter(h => h.cantidad > 0 || true) // mostrar todas
+          .map(h => `
+            <div class="hour-bar">
+              <span class="hour-label">${h.hora}</span>
+              <div class="bar-bg"><div class="bar-fill" style="width:${(h.cantidad/max)*100}%"></div></div>
+              <span class="hour-count">${h.cantidad}</span>
+            </div>
+          `).join("");
+        $("#modalResumen").classList.add("open");
+      } catch (err) {
+        setStatus("❌ Error resumen: " + err.message);
+      }
+    });
+
+    $("#closeModal").addEventListener("click", () => {
+      $("#modalResumen").classList.remove("open");
+    });
+    $("#modalResumen").addEventListener("click", (e) => {
+      if (e.target === $("#modalResumen")) $("#modalResumen").classList.remove("open");
+    });
+
+    function setStatus(msg) {
+      $("#status").textContent = msg;
+    }
+
+    // Cargar al inicio (por si ya hay datos)
+    cargarAlarmas().catch(() => setStatus("Backend no disponible. Inicia el servidor."));
+  </script>
+</body>
+</html>
