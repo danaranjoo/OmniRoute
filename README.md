@@ -24,12 +24,15 @@ Aplicación **Full Stack desacoplada** para importar, categorizar por criticidad
 ## Cómo ejecutar
 
 ```bash
-# 1. Backend
+# 1. Crear entorno virtual e instalar dependencias
 cd backend
 python -m venv venv
 source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+cd ..
+
+# 2. Ejecutar (forma más simple)
+python main.py
 ```
 
 Abre el navegador en:
@@ -37,7 +40,14 @@ Abre el navegador en:
 - **App completa:** http://localhost:8000  
 - **Swagger (docs):** http://localhost:8000/docs  
 
-El backend también sirve el frontend automáticamente.
+También puedes ejecutar desde dentro de `backend/`:
+
+```bash
+cd backend
+python main.py
+# o
+uvicorn main:app --reload --port 8000
+```
 
 ---
 
@@ -94,8 +104,9 @@ El backend también sirve el frontend automáticamente.
 
 ```
 OmniRoute/
+├── main.py                 # ← Ejecutar con: python main.py
 ├── backend/
-│   ├── main.py              # Toda la lógica de la API + lógica de negocio
+│   ├── main.py              # Lógica de la API + lógica de negocio
 │   ├── requirements.txt
 │   └── alarmas.db           # Se crea automáticamente al importar
 ├── frontend/
@@ -116,8 +127,7 @@ OmniRoute/
    Se normaliza y se usa `dateutil.parser`.
 
 3. **Duración en tiempo real**  
-   Cada vez que se lista (`/api/alarmas` o `/api/stats`) se recalcula  
-   `ahora − fecha_creacion`.
+   Cada vez que se lista se recalcula `ahora − fecha_creacion`.
 
 4. **Persistencia**  
    SQLite simple. Al importar se hace un `DELETE` + `INSERT` de todos los registros.
