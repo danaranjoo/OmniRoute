@@ -117,32 +117,6 @@ OmniRoute/
 
 ---
 
-## Notas para la sustentación (entrevista)
-
-1. **Servicio programado sin IA**  
-   Función `aplicar_logica_criticidad`. Se puede abrir el archivo y explicar cada `if` línea por línea.
-
-2. **Parseo de fechas**  
-   El CSV trae `09-OCT-26 10.12.56.000000000 PM`.  
-   Se normaliza y se usa `dateutil.parser`.
-
-3. **Duración en tiempo real**  
-   Cada vez que se lista se recalcula `ahora − fecha_creacion`.
-
-4. **Persistencia**  
-   SQLite simple. Al importar se hace un `DELETE` + `INSERT` de todos los registros.
-
-5. **Resumen del día**  
-   Filtra `fecha.date() == today` y agrupa con `defaultdict` por `hour`.
-
-6. **Export Excel**  
-   Reutiliza el mismo endpoint de listado (con filtro) y genera el `.xlsx` con pandas + openpyxl.
-
-7. **Arquitectura desacoplada**  
-   El frontend puede correr en otro puerto o dominio; solo necesita la URL del backend.
-
----
-
 ## Datos de prueba
 
 Archivo de muestra: `Muestra de datos.csv` (~1499 registros, separador `|`).
