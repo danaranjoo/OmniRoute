@@ -405,14 +405,25 @@ def exportar_excel(
     Exporta a Excel la información exacta que se está visualizando
     (respetando el filtro de criticidad aplicado).
     """
-    datos = listar_alarmas(filtro=filtro)
+    # Obtener datos directamente sin llamar a la otra función (evita el bug del Query)
+    alarmas = cargar_alarmas_desde_db()
+    resultado = []
 
-    if not datos:
+    for a in alarmas:
+        item = enriquecer_alarma(a)
+
+        # Filtro de criticidad
+        if filtro and filtro.upper() not in ("TODOS", ""):
+            if item["criticidad"] != filtro.upper():
+                continue
+
+        resultado.append(item)
+
+    if not resultado:
         raise HTTPException(status_code=404, detail="No hay datos para exportar")
 
-    # Convertir a lista de dicts planos
-    filas = [d.model_dump() if hasattr(d, "model_dump") else d for d in datos]
-    df = pd.DataFrame(filas)
+    # Convertir a DataFrame
+    df = pd.DataFrame(resultado)
     df = df.rename(
         columns={
             "id_alarma": "ID_ALARMA",
